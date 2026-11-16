@@ -156,7 +156,7 @@ public final class BKZipArchive: @unchecked Sendable {
 
     /// Inflates raw DEFLATE data (ZIP stores it without a zlib header, which is what
     /// `COMPRESSION_ZLIB` expects).
-    static func inflate(_ data: Data, expectedSize: Int) throws -> Data {
+    public static func inflate(_ data: Data, expectedSize: Int) throws -> Data {
         guard expectedSize > 0 else { return Data() }
         var output = Data(count: expectedSize)
         let written = output.withUnsafeMutableBytes { (destination: UnsafeMutableRawBufferPointer) -> Int in

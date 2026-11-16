@@ -141,11 +141,16 @@ private extension MainViewModel {
 
             let unzipRoot: URL
             switch BKBookFormat(fileURL: url) {
-            case .plainText, .markdown:
-                // Text and Markdown are converted into an EPUB-style folder that the reader opens as usual.
+            case .plainText, .markdown, .mobi:
+                // Text, Markdown and Kindle books are converted into an EPUB-style folder that the
+                // reader opens as usual.
                 let needsSecurityAccess = url.startAccessingSecurityScopedResource()
                 defer { if needsSecurityAccess { url.stopAccessingSecurityScopedResource() } }
-                _ = try BKTextBookConverter.convert(url, to: stagingRoot)
+                if BKBookFormat(fileURL: url) == .mobi {
+                    _ = try BKMobiConverter.convert(url, to: stagingRoot)
+                } else {
+                    _ = try BKTextBookConverter.convert(url, to: stagingRoot)
+                }
                 unzipRoot = stagingRoot
             default:
                 unzipRoot = try EpubFileManager.shared.prepareBookFiles(

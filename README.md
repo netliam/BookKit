@@ -142,6 +142,20 @@ let reader = try BKComicReaderViewBuilder.build(url: cbzURL, highlightStore: sto
 
 `BKBookFormat.allContentTypes` then includes it. CBR (RAR) archives aren't supported, since that needs a third-party decoder.
 
+## 📱 Kindle books (MOBI, AZW3)
+
+Unencrypted Kindle books are converted into an EPUB-style folder and read in the EPUB reader:
+
+```swift
+let book = try BKMobiConverter.convert(fileURL, to: bookFolder)   // .mobi, .azw3, .azw, .prc
+```
+
+- **MOBI 6:** the HTML is split at its page breaks. `filepos` links become anchors and images are written out.
+- **AZW3 / KF8:** parts are rebuilt from their skeletons and fragments. Stylesheets, fonts, images and internal links are resolved.
+- **Both:** Contents comes from the book's NCX, and metadata (title, author, language, cover) from EXTH.
+- **Not supported:** DRM-protected books and HUFF/CDIC compression. These throw `BKBookError.unreadable`.
+- **File types:** declare `com.bookkit.mobi` (`mobi`, `prc`) and `com.bookkit.azw3` (`azw3`, `azw`) in `UTImportedTypeDeclarations`, conforming to `public.data`, like `.cbz` above. Then the document picker allows them.
+
 ## 📄 Plain text and Markdown
 
 `.txt` and `.md` files are converted into an EPUB-style folder and read in the same reader, so themes,

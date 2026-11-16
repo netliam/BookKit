@@ -19,6 +19,17 @@ struct BKEpubPackageWriter {
         var body: String
         /// Sub-entries for the table of contents: (title, element id inside this chapter).
         var sections: [(title: String, id: String)] = []
+        /// `body` is a complete document (e.g. a Kindle part), written as is.
+        var isFullDocument = false
+    }
+
+    /// A table of contents entry pointing into a chapter, for books whose contents aren't one
+    /// entry per chapter (see `toc`).
+    struct TOCEntry {
+        var title: String
+        var chapterIndex: Int
+        var fragment: String?
+        var children: [TOCEntry] = []
     }
 
     struct Resource {
@@ -36,6 +47,10 @@ struct BKEpubPackageWriter {
     var resources: [Resource] = []
     /// Extra CSS for the converted markup (code blocks, tables…). The reader's own styles still apply.
     var stylesheet: String = BKEpubPackageWriter.defaultStylesheet
+    /// Replaces the table of contents made from the chapters' titles and sections.
+    var toc: [TOCEntry]?
+    /// A resource's href, marked as the cover image.
+    var coverHref: String?
 
     /// A UUID derived from the file's bytes: the same file always gets the same identifier.
     static func identifier(for data: Data) -> String {
@@ -84,12 +99,13 @@ struct BKEpubPackageWriter {
 
     // MARK: - Documents
 
-    private func chapterHref(_ index: Int) -> String {
+    func chapterHref(_ index: Int) -> String {
         String(format: "text/chapter%04d.xhtml", index + 1)
     }
 
     private func chapterDocument(_ chapter: Chapter) -> String {
-        """
+        if chapter.isFullDocument { return chapter.body }
+        return """
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE html>
         <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="\(Self.escape(language))" lang="\(Self.escape(language))">
@@ -105,9 +121,17 @@ struct BKEpubPackageWriter {
         """
     }
 
+    private func navItems(_ entries: [TOCEntry]) -> String {
+        entries.map { entry in
+            let href = chapterHref(entry.chapterIndex) + (entry.fragment.map { "#\($0)" } ?? "")
+            let children = entry.children.isEmpty ? "" : "<ol>\(navItems(entry.children))</ol>"
+            return "<li><a href=\"\(Self.escape(href))\">\(Self.escape(entry.title))</a>\(children)</li>\n"
+        }.joined()
+    }
+
     private func navDocument() -> String {
-        var items = ""
-        for (index, chapter) in chapters.enumerated() {
+        var items = toc.map(navItems) ?? ""
+        for (index, chapter) in chapters.enumerated() where toc == nil {
             guard let chapterTitle = chapter.title else { continue }
             let href = chapterHref(index)
             items += "<li><a href=\"\(href)\">\(Self.escape(chapterTitle))</a>"
@@ -144,8 +168,11 @@ struct BKEpubPackageWriter {
             manifest += "    <item id=\"chapter\(index + 1)\" href=\"\(chapterHref(index))\" media-type=\"application/xhtml+xml\"/>\n"
             spine += "    <itemref idref=\"chapter\(index + 1)\"/>\n"
         }
+        var coverMeta = ""
         for (index, resource) in resources.enumerated() {
-            manifest += "    <item id=\"res\(index + 1)\" href=\"\(Self.escape(resource.href))\" media-type=\"\(Self.mediaType(for: resource.href))\"/>\n"
+            let isCover = resource.href == coverHref
+            if isCover { coverMeta = "    <meta name=\"cover\" content=\"res\(index + 1)\"/>\n" }
+            manifest += "    <item id=\"res\(index + 1)\" href=\"\(Self.escape(resource.href))\" media-type=\"\(Self.mediaType(for: resource.href))\"\(isCover ? " properties=\"cover-image\"" : "")/>\n"
         }
         let creators = authors.map { "    <dc:creator>\(Self.escape($0))</dc:creator>\n" }.joined()
         return """
@@ -155,7 +182,7 @@ struct BKEpubPackageWriter {
             <dc:identifier id="book-id">\(Self.escape(identifier))</dc:identifier>
             <dc:title>\(Self.escape(title))</dc:title>
         \(creators)    <dc:language>\(Self.escape(language))</dc:language>
-          </metadata>
+        \(coverMeta)  </metadata>
           <manifest>
         \(manifest)  </manifest>
           <spine>
@@ -194,6 +221,9 @@ struct BKEpubPackageWriter {
         case "svg": "image/svg+xml"
         case "webp": "image/webp"
         case "css": "text/css"
+        case "ttf": "font/ttf"
+        case "otf": "font/otf"
+        case "woff": "font/woff"
         default: "application/octet-stream"
         }
     }
