@@ -217,7 +217,8 @@ struct BKMarksView: View {
             }
             return highlight.text.isEmpty ? chapterText : "\(chapterText) · \(highlight.text)"
         case .bookMark:
-            return chapterText
+            // The start of the bookmarked page, when known; the title is already the row's heading.
+            return highlight.text.isEmpty ? chapterText : highlight.text
         }
     }
 

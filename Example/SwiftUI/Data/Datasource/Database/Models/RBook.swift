@@ -26,6 +26,9 @@ final class RBook: Object {
     @Persisted var descriptionHTML: String = ""
     @Persisted var createdAt: Int64 = 0
     @Persisted var updatedAt: Int64 = 0
+    /// `BKBookFormat` raw value of the file the book was read from; empty for books saved before
+    /// formats were stored (all EPUBs).
+    @Persisted var format: String = ""
 
     public override static func primaryKey() -> String {
         return Constants.primaryKey

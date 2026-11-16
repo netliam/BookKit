@@ -7,6 +7,7 @@
 
 import Combine
 import BookKit
+import PDFKit
 import SwiftUI
 
 @MainActor
@@ -26,6 +27,9 @@ final class MainViewModel: ObservableObject {
     var highlightStore: any BKHighlightStoreProtocol {
         useCase.highlightStore
     }
+
+    /// Reading positions of PDFs (EPUB positions are kept in Realm by `handleCoords`).
+    let pdfPositionStore = BKJSONReaderStore()
 }
 
 // MARK: - Methods
@@ -114,6 +118,10 @@ extension MainViewModel: BKReaderCoordsProtocol {
 
 private extension MainViewModel {
     func importBook(from url: URL) {
+        if BKBookFormat(fileURL: url) == .pdf {
+            importPDF(from: url)
+            return
+        }
         do {
             let stagingBase = FileHelper.shared.getTempFolder()
                 .appendingPathComponent(FileHelper.Constants.tempFolder, isDirectory: true)
@@ -150,6 +158,39 @@ private extension MainViewModel {
 
             let persistedBook = try BKEpubParser.parse(from: finalRoot)
             try useCase.bookFile.saveBook(book: persistedBook)
+            loadBooks()
+        } catch {
+            errorMsg = error.localizedDescription
+        }
+    }
+
+    /// PDFs are read straight from the file: it's copied into the book's folder, with page 1 as the cover.
+    func importPDF(from url: URL) {
+        let needsSecurityAccess = url.startAccessingSecurityScopedResource()
+        defer { if needsSecurityAccess { url.stopAccessingSecurityScopedResource() } }
+        do {
+            guard let document = PDFDocument(url: url), !document.isLocked else {
+                errorMsg = "This PDF can't be opened (it may be password protected).".localized()
+                return
+            }
+            let bookId = BKPDFReaderViewBuilder.identifier(forPDFAt: url)
+            let folder = FileHelper.shared.bookDirectory(for: bookId)
+            try? FileManager.default.removeItem(at: folder)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try FileManager.default.copyItem(at: url, to: folder.appendingPathComponent("book.pdf"))
+
+            var coverPath = ""
+            if let page = document.page(at: 0),
+               let png = page.thumbnail(of: CGSize(width: 400, height: 600), for: .mediaBox).pngData() {
+                try png.write(to: folder.appendingPathComponent("cover.png"))
+                coverPath = "cover.png"
+            }
+            let attributes = document.documentAttributes ?? [:]
+            let title = (attributes[PDFDocumentAttribute.titleAttribute] as? String).flatMap { $0.isEmpty ? nil : $0 }
+                ?? url.deletingPathExtension().lastPathComponent
+            let author = attributes[PDFDocumentAttribute.authorAttribute] as? String ?? ""
+            try useCase.bookFile.saveBook(uuid: bookId, title: title, author: author,
+                                          format: BKBookFormat.pdf.rawValue, coverPath: coverPath)
             loadBooks()
         } catch {
             errorMsg = error.localizedDescription

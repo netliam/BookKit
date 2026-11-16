@@ -120,12 +120,15 @@ extension BKWebView {
                 ? UIImage(systemName: "checkmark.circle.fill")
                 : UIImage(systemName: palette.colors.count == 1 ? palette.style.systemImage : "circle.fill")
             // No title: the compact edit menu shows titles instead of images. VoiceOver reads the label.
-            let action = UIAction(title: "", image: image?.withTintColor(UIColor(hex: color.hex) ?? .label,
-                                                                         renderingMode: .alwaysOriginal)) { _ in
+            let tinted = image?.withTintColor(UIColor(hex: color.hex) ?? .label, renderingMode: .alwaysOriginal)
+            let label = checked ? String(format: L("%@, current"), color.name) : color.name
+            // Image-only menu items are read by their image's label.
+            tinted?.accessibilityLabel = label
+            let action = UIAction(title: "", image: tinted) { _ in
                 apply(palette.style, color.hex)
             }
             // No `.on` state: the menu would draw its own tint-colored check over the swatch.
-            action.accessibilityLabel = checked ? String(format: L("%@, current"), color.name) : color.name
+            action.accessibilityLabel = label
             return action
         }
 

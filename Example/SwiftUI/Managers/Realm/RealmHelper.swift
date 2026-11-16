@@ -26,9 +26,9 @@ final class RealmHelper: RealmHelperProtocol {
         if !filemanager.fileExists(atPath: realmFileURL.path) {
             utils.createDirectory(directoryName: Utils.Directories.database.rawValue)
         }
-        var config = Realm.Configuration(
+        let config = Realm.Configuration(
             fileURL: realmFileURL,
-            schemaVersion: 2,
+            schemaVersion: 3,
             migrationBlock: { _, _ in },
             shouldCompactOnLaunch: {totalBytes, usedBytes in
                 // totalBytes refers to the size of the file on disk in bytes (data + free space)
@@ -37,7 +37,8 @@ final class RealmHelper: RealmHelperProtocol {
                 let oneHundredMB = 30 * 1024 * 1024
                 return (totalBytes > oneHundredMB) && (Double(usedBytes) / Double(totalBytes)) < 0.5
             })
-        config.deleteRealmIfMigrationNeeded = true
+        // Fields added in a new schema version migrate automatically; deleting the file on any
+        // schema change would wipe the library and all highlights.
         Realm.Configuration.defaultConfiguration = config
     }
 }

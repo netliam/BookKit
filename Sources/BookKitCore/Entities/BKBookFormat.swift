@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 /// The kinds of book file BookKit can open.
 public enum BKBookFormat: String, CaseIterable, Sendable {
     case epub
+    case pdf
     case plainText
     case markdown
 
@@ -25,6 +26,7 @@ public enum BKBookFormat: String, CaseIterable, Sendable {
     public var fileExtensions: [String] {
         switch self {
         case .epub: ["epub"]
+        case .pdf: ["pdf"]
         case .plainText: ["txt", "text"]
         case .markdown: ["md", "markdown", "mdown", "mkd"]
         }
@@ -34,6 +36,7 @@ public enum BKBookFormat: String, CaseIterable, Sendable {
     public var contentTypes: [UTType] {
         switch self {
         case .epub: [.epub]
+        case .pdf: [.pdf]
         case .plainText: [.plainText]
         case .markdown: [UTType("net.daringfireball.markdown") ?? .plainText]
         }

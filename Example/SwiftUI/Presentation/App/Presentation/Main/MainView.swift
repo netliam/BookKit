@@ -28,7 +28,12 @@ struct MainView: View {
                 LazyVGrid(columns: gridColumns, spacing: 16) {
                     ForEach(viewModel.books, id: \.uuid) { book in
                         NavigationLink {
-                            if let ebook = viewModel.getEpubBook(book: book) {
+                            if book.isPDF, let pdfURL = book.pdfURL {
+                                BKPDFReaderViewBuilder.build(url: pdfURL,
+                                                             bookId: book.uuid,
+                                                             highlightStore: viewModel.highlightStore,
+                                                             positionStore: viewModel.pdfPositionStore)
+                            } else if let ebook = viewModel.getEpubBook(book: book) {
                                 let initialPosition = viewModel.initialBookPosition(for: ebook)
                                 BKReaderViewBuilder.build(
                                     ebook,

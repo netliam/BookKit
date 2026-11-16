@@ -196,6 +196,9 @@
     "No matches": {
       "extractionState": "manual"
     },
+    "No Results": {
+      "extractionState": "manual"
+    },
     "No results for “%@”.": {
       "extractionState": "manual"
     },
@@ -263,6 +266,9 @@
       "extractionState": "manual"
     },
     "Remove Bookmark": {
+      "extractionState": "manual"
+    },
+    "Remove Highlight": {
       "extractionState": "manual"
     },
     "Reset to Theme Colors": {

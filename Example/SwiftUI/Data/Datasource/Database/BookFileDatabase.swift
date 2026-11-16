@@ -12,6 +12,8 @@ import RealmSwift
 
 protocol BookFileDatabaseProtocol {
     func saveBook(book: BKEpubBook) throws
+    /// Saves a book read straight from its file (e.g. a PDF) rather than an EPUB folder.
+    func saveBook(uuid: String, title: String, author: String, format: String, coverPath: String) throws
     func getBookList() throws -> [RBook]
     func getBook(uuid: String) throws -> RBook
     func deleteBook(uuid: String) throws
@@ -34,6 +36,7 @@ final class BookFileDatabase: BookFileDatabaseProtocol {
         record.bookDate = book.metadata.date ?? ""
         record.descriptionHTML = book.metadata.descriptionHTML ?? ""
         record.updatedAt = nowMillis
+        record.format = BKBookFormat.epub.rawValue
 
         if let existing = realm.object(ofType: RBook.self, forPrimaryKey: bookId) {
             record.createdAt = existing.createdAt == 0 ? nowMillis : existing.createdAt
@@ -41,6 +44,22 @@ final class BookFileDatabase: BookFileDatabaseProtocol {
             record.createdAt = nowMillis
         }
 
+        try realm.write {
+            realm.add(record, update: .modified)
+        }
+    }
+
+    func saveBook(uuid: String, title: String, author: String, format: String, coverPath: String) throws {
+        let realm = try Realm()
+        let nowMillis = Date().timeMillis
+        let record = RBook()
+        record.uuid = uuid
+        record.title = title
+        record.author = author
+        record.coverPath = coverPath
+        record.format = format
+        record.updatedAt = nowMillis
+        record.createdAt = realm.object(ofType: RBook.self, forPrimaryKey: uuid)?.createdAt ?? nowMillis
         try realm.write {
             realm.add(record, update: .modified)
         }

@@ -95,6 +95,24 @@ Then:
 
 ---
 
+## 📕 PDF
+
+PDFs open in their own Books-style reader, built on PDFKit:
+
+```swift
+let store = BKJSONReaderStore()
+if let reader = BKPDFReaderViewBuilder.build(url: pdfURL, highlightStore: store, positionStore: store) {
+    reader   // nil when the file isn't a readable PDF (e.g. password protected)
+}
+```
+
+- **Reading:** pages fill the screen, controls show on tap, and edge taps or swipes turn pages.
+- **Navigation:** a page slider, plus Contents built from the PDF's outline.
+- **Marks:** bookmarks, and colored highlights from the selection menu (tap one to recolor or remove it).
+- **Search and sharing:** search with snippets, and Share for the selection or the file.
+- **Storage:** highlights and bookmarks are ordinary `BKHighlight`s whose coords are `BKPDFLocation`s, saved in the same stores as EPUB marks. The PDF file itself is never modified.
+- **Book identifier:** by default it comes from the file's contents (`BKPDFReaderViewBuilder.identifier(forPDFAt:)`).
+
 ## 📄 Plain text and Markdown
 
 `.txt` and `.md` files are converted into an EPUB-style folder and read in the same reader, so themes,

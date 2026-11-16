@@ -10,6 +10,7 @@ import Foundation
 
 protocol BookFileRepositoryProtocol {
     func saveBook(book: BKEpubBook) throws
+    func saveBook(uuid: String, title: String, author: String, format: String, coverPath: String) throws
     func getBookList() throws -> [EBookEntity]
     func getBook(uuid: String) throws -> EBookEntity
     func deleteBook(uuid: String) throws
@@ -25,6 +26,10 @@ final class BookFileRepository: BookFileRepositoryProtocol {
 
     func saveBook(book: BKEpubBook) throws {
         try database.saveBook(book: book)
+    }
+
+    func saveBook(uuid: String, title: String, author: String, format: String, coverPath: String) throws {
+        try database.saveBook(uuid: uuid, title: title, author: author, format: format, coverPath: coverPath)
     }
 
     func getBookList() throws -> [EBookEntity] {
@@ -55,7 +60,8 @@ private extension RBook {
             bookDate: self.bookDate,
             descriptionHTML: self.descriptionHTML,
             createdAt: self.createdAt,
-            updatedAt: self.updatedAt
+            updatedAt: self.updatedAt,
+            format: self.format
         )
     }
 }
