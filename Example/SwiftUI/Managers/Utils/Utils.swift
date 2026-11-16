@@ -1,6 +1,6 @@
 //
 //  Utils.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 22/12/25.
 //

@@ -1,6 +1,6 @@
 //
 //  EpubFileManager.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 15/10/25.
 //

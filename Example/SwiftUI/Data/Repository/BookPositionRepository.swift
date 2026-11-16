@@ -1,20 +1,20 @@
 //
 //  BookPositionRepository.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 22/12/25.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 
 protocol BookPositionRepositoryProtocol {
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity?
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity?
 }
 
 final class BookPositionRepository: BookPositionRepositoryProtocol {
@@ -25,7 +25,7 @@ final class BookPositionRepository: BookPositionRepositoryProtocol {
         self.database = database
     }
 
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
@@ -39,7 +39,7 @@ final class BookPositionRepository: BookPositionRepositoryProtocol {
         )
     }
 
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity? {
         guard let dto = try database.getBookPosition(book: book) else {
             return nil
         }

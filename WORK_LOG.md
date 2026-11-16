@@ -1,4 +1,4 @@
-# DCEpubReaderKit: work log
+# BookKit: work log
 
 Handoff notes for continuing this work in Claude Code. They cover everything done on the `feature/roadmap-items` branch, which is not pushed.
 
@@ -6,10 +6,10 @@ Handoff notes for continuing this work in Claude Code. They cover everything don
 
 - **Package:** an SPM package for iOS 16+ (swift-tools 6.2).
 - **Modules:**
-  - `DCEpubCore`: models, persistence and search.
-  - `DCEpubParser`: OPF, NCX and nav parsing.
-  - `DCEpubRendering`: SwiftUI and UIKit reader, plus the JS and CSS resources.
-  - `DCEpubReaderKit`: re-exports the other modules.
+  - `BookKitCore`: models, persistence and search.
+  - `BKEpubParser`: OPF, NCX and nav parsing.
+  - `BookKitRendering`: SwiftUI and UIKit reader, plus the JS and CSS resources.
+  - `BookKit`: re-exports the other modules.
 - **Example app:** `Example/SwiftUI/Example.xcodeproj`. It uses Realm and ZIPFoundation and references the local package.
 - **Rendering:** each chapter is XHTML shown in a `WKWebView`. Pagination uses CSS columns driven by `Resources/EpubUtil.js`, and highlights are stored as JS "coords" strings (node path plus character offset).
 
@@ -17,12 +17,12 @@ Handoff notes for continuing this work in Claude Code. They cover everything don
 
 | Commit | Summary |
 | --- | --- |
-| `41aded1` | Horizontal reader moved to `UIPageViewController` (curl or slide is a user setting). One `DCPageWebViewController` per page; vertical mode stays scrolling. |
-| `e88686c` | Built-in JSON store (`DCJSONReaderStore`) for highlights, bookmarks and reading position, plus `DCStoreReaderDelegate`. |
-| `4b4a0df` | Full-text search: `DCEpubSearchEngine` actor, `DCHTMLText`, and a search sheet. The match is highlighted in the page via JS `highlightSearchOccurrence`. |
+| `41aded1` | Horizontal reader moved to `UIPageViewController` (curl or slide is a user setting). One `BKPageWebViewController` per page; vertical mode stays scrolling. |
+| `e88686c` | Built-in JSON store (`BKJSONReaderStore`) for highlights, bookmarks and reading position, plus `BKStoreReaderDelegate`. |
+| `4b4a0df` | Full-text search: `BKEpubSearchEngine` actor, `BKHTMLText`, and a search sheet. The match is highlighted in the page via JS `highlightSearchOccurrence`. |
 | `c641b11` | Performance: a JS `waitForLayout()` readiness signal replaces fixed delays; page counts are cached; web views are recycled; neighbouring pages are preloaded. |
 | `1e9efdc` | Example app fixes: the build failed with a missing package product; books with non-UUID ids showed a white screen (`FileHelper.bookDirectory`); Realm crashed with "Missing value for property bookId" (fixed with `internal import Realm` under MemberImportVisibility). |
-| `5314288` | Apple Books-style reader: full-screen pages, page curl over the whole screen, floating Liquid Glass controls, ⋯ menu, Themes & Settings (6 presets plus Customize), Contents (TOC/Bookmarks/Highlights), Share, whole-book "N of M" via `DCBookPaginator`, and Line Guide (dim + outline by default, blur optional). |
+| `5314288` | Apple Books-style reader: full-screen pages, page curl over the whole screen, floating Liquid Glass controls, ⋯ menu, Themes & Settings (6 presets plus Customize), Contents (TOC/Bookmarks/Highlights), Share, whole-book "N of M" via `BKBookPaginator`, and Line Guide (dim + outline by default, blur optional). |
 | `bcf6522` | Theme switching recolors live pages via an injected `<style id="dc-theme">` instead of reloading. Only the Bold font weight repaginates. |
 | `81e3425` | Page numbers stay visible (estimated from the last complete count) while the book is recounted. |
 | `5917159` | The reading position is kept across consecutive relayouts. |
@@ -49,9 +49,9 @@ Handoff notes for continuing this work in Claude Code. They cover everything don
 | `1d86764` | Note markers in the margin. |
 | `20a232d` | Share all highlights and notes from the Highlights list. |
 | `55e76ef` | Audit fixes: book scripts stripped, safe merge order, one-pass search pages, NCX test, jQuery and dead JS removed. |
-| `6d81a7e` | `DCReaderConfiguration`; per-window lock and brightness; keyboard and trackpad paging; spreads by width. |
+| `6d81a7e` | `BKReaderConfiguration`; per-window lock and brightness; keyboard and trackpad paging; spreads by width. |
 | `256652e` | UI strings localized from the package's `Localizable.xcstrings`. |
-| `7a011a0` | EPUB CFI conversion (`DCCFIConverter`, `coordsToCFI`/`cfiToCoords`). |
+| `7a011a0` | EPUB CFI conversion (`BKCFIConverter`, `coordsToCFI`/`cfiToCoords`). |
 | `f33bfbd` | README points at the fork; release `0.1.0`. |
 | (this commit) | Handoff #12, #14, #15: CFI spine step from the OPF; highlight styles and colors as data with a configurable menu; whole-book progress for the delegate. Release `0.2.0`. |
 
@@ -63,51 +63,51 @@ In total, against `main`: 74 files changed, about 8.4k insertions. The last eigh
   - Coords for a selection come from `normalizedSelectionRange`, which moves element boundaries into text nodes (WebKit puts them on elements when a selection crosses paragraphs).
   - `highlightCoords` returns early when the highlight is already drawn, so pages of a chapter can redraw each other's saves.
   - Selection granularity is `.character` in both readers. With the default, a dragged selection snapped to whole paragraphs and couldn't cross a paragraph break.
-- **Keeping pages in sync.** Saving a highlight posts `.dcHighlightDidChange`. Every `DCWebView` redraws its color and note marker (`updateDrawnHighlight`).
+- **Keeping pages in sync.** Saving a highlight posts `.dcHighlightDidChange`. Every `BKWebView` redraws its color and note marker (`updateDrawnHighlight`).
 - **Note marker:** `layoutNoteMarkers()` in `EpubUtil.js` draws `.dc-note-marker` divs in a layer on `<html>` (outside `<body>`, so no text, no line-break or coords changes), in the column gap (paged) or right margin (scrolling) beside the noted passage's last line. Relaid out after pagination and on note/highlight changes. Note `Style.css` has `div { max-width: 100% }`, so the marker needs `max-width: none`.
 - **Merging:** `expandSelectionOverHighlights()` widens the selection over overlapped highlights using whole-body character offsets (node references don't survive unwrapping), removes them, and `saveSelection` deletes them from the store and joins their notes.
-- **Export:** `DCMarksViewModel.exportText`, shared through `DCShareSheet` from the Highlights list; it follows the current filter and sort.
+- **Export:** `BKMarksViewModel.exportText`, shared through `BKShareSheet` from the Highlights list; it follows the current filter and sort.
 - **Taps on highlights and links:** `isTappableAtPoint` (JS) is checked by both readers' chrome-tap handlers, so these taps don't also toggle the controls or turn the page.
 - **Links:** a capture-phase click listener in `EpubUtil.js` (`linkAction`) posts `linkTapped` messages:
-  - `footnote`: a note in the same chapter, with its text. Shown in a popover by `DCWebView+Links.swift`.
-  - `noteref`: a note in another file. Read in Swift by `DCFootnoteText` (an XMLParser in `DCEpubCore`).
-  - `link`: anywhere else. Goes through the router to `DCChapterViewAction.openLink` and then `DCReaderViewModel.openLink`, which uses `DCEpubBook.spineIndex(forChapterURL:)`.
+  - `footnote`: a note in the same chapter, with its text. Shown in a popover by `BKWebView+Links.swift`.
+  - `noteref`: a note in another file. Read in Swift by `BKFootnoteText` (an XMLParser in `BookKitCore`).
+  - `link`: anywhere else. Goes through the router to `BKChapterViewAction.openLink` and then `BKReaderViewModel.openLink`, which uses `BKEpubBook.spineIndex(forChapterURL:)`.
 
   The chapter's own URL is injected as `window.dcChapterURL`, because the page's base URL is only its folder.
 - **Footnote CSS:** chapters are loaded with `loadHTMLString`, so they're parsed as HTML, where `epub:type` is a plain attribute name. The old `aside[epub|type~=footnote]` rule never matched (it also lacked an `@namespace`). The escaped `aside[epub\:type~="footnote"]` is the one that works.
-- **Back:** `DCReaderViewModel.backPosition` is recorded by `rememberPositionBeforeJump()` before every jump, using saved coords when known so it survives a relayout. There's one level of back, with no forward.
-- **Scrubber:** `DCReaderViewModel.scrubTarget(fraction:counts:chapterCount:)` maps 0…1 to a chapter and page. Jumps go through `DCPagedReaderNavigating.show(spineIndex:page:)`, or the new `DCChapterJump.page` in scrolling mode.
-- **Text layout:** `DCTextLayout` (line spacing, margins, justified) is stored under the `lineSpacing`, `pageMargins` and `justifyText` keys. CSS is injected as `<style id="dc-layout">`, and margins are native insets. `textLayout.id` is part of `pagedConfigId`, `readerConfigId` and the paginator's style id, so a change lays the book out and recounts.
-- **Image viewer:** `imageAction` in `EpubUtil.js` posts `{kind: 'image'}` for a tapped `<img>`/SVG `<image>` that isn't in a link; `DCImageViewerController` shows it.
-- **Rotation lock:** iOS asks the app delegate, so the host returns `DCReaderOrientationLock.supportedOrientations` from `application(_:supportedInterfaceOrientationsFor:)`. The example app's `AppDelegate.swift` does (it's listed in the Xcode project by hand). The reader unlocks when it closes.
+- **Back:** `BKReaderViewModel.backPosition` is recorded by `rememberPositionBeforeJump()` before every jump, using saved coords when known so it survives a relayout. There's one level of back, with no forward.
+- **Scrubber:** `BKReaderViewModel.scrubTarget(fraction:counts:chapterCount:)` maps 0…1 to a chapter and page. Jumps go through `BKPagedReaderNavigating.show(spineIndex:page:)`, or the new `BKChapterJump.page` in scrolling mode.
+- **Text layout:** `BKTextLayout` (line spacing, margins, justified) is stored under the `lineSpacing`, `pageMargins` and `justifyText` keys. CSS is injected as `<style id="dc-layout">`, and margins are native insets. `textLayout.id` is part of `pagedConfigId`, `readerConfigId` and the paginator's style id, so a change lays the book out and recounts.
+- **Image viewer:** `imageAction` in `EpubUtil.js` posts `{kind: 'image'}` for a tapped `<img>`/SVG `<image>` that isn't in a link; `BKImageViewerController` shows it.
+- **Rotation lock:** iOS asks the app delegate, so the host returns `BKReaderOrientationLock.supportedOrientations` from `application(_:supportedInterfaceOrientationsFor:)`. The example app's `AppDelegate.swift` does (it's listed in the Xcode project by hand). The reader unlocks when it closes.
 - **Spreads:** `columnsPerPage()` in `EpubUtil.js` is 2 on wide landscape pages when `window.dcAllowSpreads`; 2n columns fill n pages, so pages are still `innerWidth` apart and nothing else changes. Line Guide reads column by column.
-- **Fixed layout:** `DCEpubBook.isFixedLayout(spineIndex:)` (package `rendition:layout`, overridable per itemref). `DCChapterHTMLBuilder` loads those pages without the reader stylesheet, with `window.dcFixedLayout` set to the viewport size; `applyFixedLayout` scales and centers them, and the pagination functions return 1.
-- **Fonts:** system fonts are CSS classes on `<html>` like the bundled ones (`DCFontFamily.systemFontStack` and `Style.css` must agree; a test checks).
-- **Theme colors:** `DCThemeColorStore` (UserDefaults `DCThemeColors`, keyed `theme-light|dark`). `DCReaderAppearance` now carries the resolved colors; use `hasDarkBackground` rather than `isDark` for contrast decisions.
-- **Book scripts:** `DCChapterHTMLBuilder.withoutBookScripts` removes a chapter's `<script>`s and `on…=` handlers before the reader's scripts go in, and `javascript:` links are swallowed: the reader's message handlers must only be reachable from its own code. The only script now is `EpubUtil.js` (jQuery, `EpubHelper.js` and the old highlight libraries are gone; `callHighlightURL` lives in `EpubUtil.js`).
-- **Preferences:** `UserDefaults` is the preferences store; `DCUserPreferences` is just the `CacheKey` enum.
-- **Hosts (Bow):** `DCReaderConfiguration` carries the host's `UserDefaults` (settings, theme colors and last highlight color now live there, not in globals), `bookId`, feature flags, `onClose`, `onOpenExternalURL` and extra fonts. The reader learns its window through `DCWindowSceneReader` (`viewModel.windowScene`); lock and brightness use that scene.
+- **Fixed layout:** `BKEpubBook.isFixedLayout(spineIndex:)` (package `rendition:layout`, overridable per itemref). `BKChapterHTMLBuilder` loads those pages without the reader stylesheet, with `window.dcFixedLayout` set to the viewport size; `applyFixedLayout` scales and centers them, and the pagination functions return 1.
+- **Fonts:** system fonts are CSS classes on `<html>` like the bundled ones (`BKFontFamily.systemFontStack` and `Style.css` must agree; a test checks).
+- **Theme colors:** `BKThemeColorStore` (UserDefaults `BKThemeColors`, keyed `theme-light|dark`). `BKReaderAppearance` now carries the resolved colors; use `hasDarkBackground` rather than `isDark` for contrast decisions.
+- **Book scripts:** `BKChapterHTMLBuilder.withoutBookScripts` removes a chapter's `<script>`s and `on…=` handlers before the reader's scripts go in, and `javascript:` links are swallowed: the reader's message handlers must only be reachable from its own code. The only script now is `EpubUtil.js` (jQuery, `EpubHelper.js` and the old highlight libraries are gone; `callHighlightURL` lives in `EpubUtil.js`).
+- **Preferences:** `UserDefaults` is the preferences store; `BKUserPreferences` is just the `CacheKey` enum.
+- **Hosts (Bow):** `BKReaderConfiguration` carries the host's `UserDefaults` (settings, theme colors and last highlight color now live there, not in globals), `bookId`, feature flags, `onClose`, `onOpenExternalURL` and extra fonts. The reader learns its window through `BKWindowSceneReader` (`viewModel.windowScene`); lock and brightness use that scene.
 - **Localization:** UI strings go through `L("…")` (package bundle). Values use format keys + `String(format:)`. A test fails if a key in code is missing from `Localizable.xcstrings`; Xcode's symbol generation rejects keys that differ only in case/punctuation.
 - **CFI:** the converter assumes `<spine>` is the package's third element (`/6`), like epub.js.
-- **Last highlight color:** `DCHighlightStyle.lastUsed` (UserDefaults key `DCLastHighlightStyle`).
-- **Search result pages** are exact: after each search, `DCBookPaginator.locateSearch` lays out each matching chapter off screen and runs `highlightSearchOccurrence` for every match, the same code the reader jumps with. The sheet shows the estimate until then.
+- **Last highlight color:** `BKHighlightStyle.lastUsed` (UserDefaults key `BKLastHighlightStyle`).
+- **Search result pages** are exact: after each search, `BKBookPaginator.locateSearch` lays out each matching chapter off screen and runs `highlightSearchOccurrence` for every match, the same code the reader jumps with. The sheet shows the estimate until then.
 - **Scrolling mode:**
   - `applyVerticalPagination` returns the number of screens a chapter takes, so the whole-book count and "N of M" work.
   - A chapter that reloads after a layout change resumes at the last reported position.
   - Jumps into a neighbouring chapter that's already loaded run straight away. Before, they waited for a load that never came, so they landed at the chapter's top.
 - **Back label:** after a relayout, "Back to Page N" names the chapter instead, because the saved page number belongs to the old layout.
-- **Sharing a passage** (selection or highlight menu) sends the same text as ⋯ → Share: the quote, then "Title by Author" (`DCEpubBook.shareText(quoting:)`).
+- **Sharing a passage** (selection or highlight menu) sends the same text as ⋯ → Share: the quote, then "Title by Author" (`BKEpubBook.shareText(quoting:)`).
 
 ## Selection menu (`469d43b`)
 
-- **Menu:** `DCWebView.buildMenu(with:)` replaces the system edit menu (the old `UIMenuController` code is gone) with:
+- **Menu:** `BKWebView.buildMenu(with:)` replaces the system edit menu (the old `UIMenuController` code is gone) with:
   - a palette of swatches (yellow, green, blue, pink, purple, underline), image-only with accessibility labels;
   - Add Note;
   - Look Up and Translate (the system's commands, minus web search);
-  - Search, which opens the book search with the selection via `searchBook(for:)` → `DCChapterViewAction.searchBook`;
+  - Search, which opens the book search with the selection via `searchBook(for:)` → `BKChapterViewAction.searchBook`;
   - Copy;
   - Share….
-- **Model:** `DCHighlightStyle` enum; `DCHighlight.style` is optional so old data decodes; `displayStyle` provides the fallback.
+- **Model:** `BKHighlightStyle` enum; `BKHighlight.style` is optional so old data decodes; `displayStyle` provides the fallback.
 - **Styling:** CSS class `highlight-<style>`, and purple was added to `Style.css`.
 - **Persistence:** the example's Realm `RBookMark.style` was added and the schema bumped to 2.
 - **Highlights list:** icons are tinted with the highlight color.
@@ -118,35 +118,35 @@ In total, against `main`: 74 files changed, about 8.4k insertions. The last eigh
 
 ## Highlight styles, colors and menu (0.2.0)
 
-- **Model:** `DCHighlight` stores `annotationStyle` (`DCAnnotationStyle`: highlight, underline, squiggly, strikethrough)
+- **Model:** `BKHighlight` stores `annotationStyle` (`BKAnnotationStyle`: highlight, underline, squiggly, strikethrough)
   and `color` (`#RRGGBB`, kept exactly as given). Its `Codable` is hand-written so the old `style` key (a
-  `DCHighlightStyle` name) still decodes; encoding writes only the new keys. `DCHighlightStyle` remains for the kit's
+  `BKHighlightStyle` name) still decodes; encoding writes only the new keys. `BKHighlightStyle` remains for the kit's
   default colors, and the `style:` init argument maps onto the two new fields. `displayStyle` was removed.
 - **Drawing:** each highlight span gets class `highlight-<annotationStyle>` and the color as the `--dc-hl` CSS variable
   (`wrapRange`, `setHighlightStyleById`). `Style.css` draws the four styles from it; the per-color classes and their
   night/red variants were removed. `HIGHLIGHT_CLASS` in `EpubUtil.js` lists the four style classes.
-- **Menu:** `DCHighlightMenuConfiguration` (on `DCReaderConfiguration.highlightMenu`): palettes per style, the
+- **Menu:** `BKHighlightMenuConfiguration` (on `BKReaderConfiguration.highlightMenu`): palettes per style, the
   selection actions and the tapped-highlight actions, in order, plus custom actions. Both menus are built in
-  `DCWebView+HighlightMenu.swift`. The row shows the current style's colors, plus a glyph for each single-color style;
+  `BKWebView+HighlightMenu.swift`. The row shows the current style's colors, plus a glyph for each single-color style;
   other styles go in a Style submenu (just the style's submenu when there's only one). Note and Delete get their own
   section, the other actions share one (so the default selection menu now has Copy and Share in one section).
-- **Remembered:** the last style, and the last color per style (`DCLastAnnotationStyle`, `DCLastHighlightColors`). The
-  old `DCLastHighlightStyle` value is read if the new keys are missing.
+- **Remembered:** the last style, and the last color per style (`BKLastAnnotationStyle`, `BKLastHighlightColors`). The
+  old `BKLastHighlightStyle` value is read if the new keys are missing.
 - **Highlights list:** filters by style and color (`Filter.look`), in palette order, then colors from elsewhere;
   names come from the palettes.
 - **Example app:** stores `"<style> <#hex>"` in the existing `RBookMark.style` column (no schema change).
-- **Progress:** `DCReaderCoordsProtocol.handleProgress(book:progress:)` (default does nothing) with
-  `DCReaderProgress` (fraction, and page / total once counted), sent after `handleCoords` for page turns.
-- **CFI spine step:** `DCOPFParser` records `<spine>`'s position among `<package>`'s children
-  (`DCOPFPackage.spineStep`, `DCEpubBook.spineStep`); `DCCFIConverter` uses it instead of `/6`.
+- **Progress:** `BKReaderCoordsProtocol.handleProgress(book:progress:)` (default does nothing) with
+  `BKReaderProgress` (fraction, and page / total once counted), sent after `handleCoords` for page turns.
+- **CFI spine step:** `BKOPFParser` records `<spine>`'s position among `<package>`'s children
+  (`BKOPFPackage.spineStep`, `BKEpubBook.spineStep`); `BKCFIConverter` uses it instead of `/6`.
 
 ## Testing
 
-- Uses Swift Testing (141 tests). WebKit-backed suites are nested under `WebKitBackedTests` (in `DCSearchHighlightJSTests.swift`), which runs serially.
+- Uses Swift Testing (141 tests). WebKit-backed suites are nested under `WebKitBackedTests` (in `BKSearchHighlightJSTests.swift`), which runs serially.
 - Run via `xcodebuild`, because Xcode's in-memory file list can be stale for new files:
 
   ```sh
-  xcodebuild test -scheme DCEpubReaderKit \
+  xcodebuild test -scheme BookKit \
     -destination 'platform=iOS Simulator,id=<booted sim id>' \
     -derivedDataPath /tmp/dcepub-ui-dd \
     -test-timeouts-enabled YES -maximum-test-execution-time-allowance 120

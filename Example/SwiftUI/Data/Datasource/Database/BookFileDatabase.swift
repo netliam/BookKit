@@ -1,24 +1,24 @@
 //
 //  BookFileDatabase.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 19/1/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 internal import Realm
 import RealmSwift
 
 protocol BookFileDatabaseProtocol {
-    func saveBook(book: DCEpubBook) throws
+    func saveBook(book: BKEpubBook) throws
     func getBookList() throws -> [RBook]
     func getBook(uuid: String) throws -> RBook
     func deleteBook(uuid: String) throws
 }
 
 final class BookFileDatabase: BookFileDatabaseProtocol {
-    func saveBook(book: DCEpubBook) throws {
+    func saveBook(book: BKEpubBook) throws {
         let realm = try Realm()
         let nowMillis = Date().timeMillis
         let bookId = book.uniqueIdentifier

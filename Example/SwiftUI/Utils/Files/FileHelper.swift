@@ -1,6 +1,6 @@
 //
 //  FileHelper.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 15/10/25.
 //
@@ -11,7 +11,7 @@ final class FileHelper {
 
     enum Constants {
         static let bookFolder = "books"
-        static let tempFolder = "DCEpubReaderKit_import"
+        static let tempFolder = "BKEpubReaderKit_import"
     }
 
     static let shared = FileHelper()

@@ -1,17 +1,17 @@
 //
 //  BookHighlightRepository.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 04/05/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 
 protocol BookHighlightRepositoryProtocol {
-    func saveHighlight(_ highlight: DCHighlight) throws
-    func highlights(bookId: String) throws -> [DCHighlight]
-    func highlights(bookId: String, chapterId: String) throws -> [DCHighlight]
+    func saveHighlight(_ highlight: BKHighlight) throws
+    func highlights(bookId: String) throws -> [BKHighlight]
+    func highlights(bookId: String, chapterId: String) throws -> [BKHighlight]
     func deleteHighlight(uuid: String) throws
 }
 
@@ -23,15 +23,15 @@ final class BookHighlightRepository: BookHighlightRepositoryProtocol {
         self.database = database
     }
 
-    func saveHighlight(_ highlight: DCHighlight) throws {
+    func saveHighlight(_ highlight: BKHighlight) throws {
         try database.saveHighlight(highlight)
     }
 
-    func highlights(bookId: String) throws -> [DCHighlight] {
+    func highlights(bookId: String) throws -> [BKHighlight] {
         try database.highlights(bookId: bookId)
     }
 
-    func highlights(bookId: String, chapterId: String) throws -> [DCHighlight] {
+    func highlights(bookId: String, chapterId: String) throws -> [BKHighlight] {
         try database.highlights(bookId: bookId, chapterId: chapterId)
     }
 

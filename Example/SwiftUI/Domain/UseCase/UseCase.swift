@@ -1,18 +1,18 @@
 //
 //  UseCase.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 6/2/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 
 protocol UseCaseProtocol {
     var bookFile: BookFileUseCaseProtocol { get }
     var bookPosition: BookPositionUseCaseProtocol { get }
     var bookHighlight: BookHighlightUseCaseProtocol { get }
-    @MainActor var highlightStore: any DCHighlightStoreProtocol { get }
+    @MainActor var highlightStore: any BKHighlightStoreProtocol { get }
 }
 
 final class UseCase {
@@ -43,5 +43,5 @@ extension UseCase: UseCaseProtocol {
     var bookFile: BookFileUseCaseProtocol { bookFileUseCase }
     var bookPosition: BookPositionUseCaseProtocol { bookPositionUseCase }
     var bookHighlight: BookHighlightUseCaseProtocol { bookHighlightUseCase }
-    @MainActor var highlightStore: any DCHighlightStoreProtocol { _highlightStore }
+    @MainActor var highlightStore: any BKHighlightStoreProtocol { _highlightStore }
 }

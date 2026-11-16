@@ -1,11 +1,11 @@
 //
 //  MainView.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 5/2/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import SwiftUI
 internal import UniformTypeIdentifiers
 
@@ -30,7 +30,7 @@ struct MainView: View {
                         NavigationLink {
                             if let ebook = viewModel.getEpubBook(book: book) {
                                 let initialPosition = viewModel.initialBookPosition(for: ebook)
-                                DCReaderViewBuilder.build(
+                                BKReaderViewBuilder.build(
                                     ebook,
                                     spineIndex: initialPosition?.spineIndex ?? 0,
                                     initialCoords: initialPosition?.coords,

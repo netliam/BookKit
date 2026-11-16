@@ -1,26 +1,26 @@
 //
 //  BookPositionDatabase.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 22/12/25.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 internal import Realm
 import RealmSwift
 
 protocol BookPositionDatabaseProtocol {
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity?
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity?
 }
 
 final class BookPositionDatabase: BookPositionDatabaseProtocol {
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
@@ -75,7 +75,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
         }
     }
 
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity? {
         let realm = try Realm()
         guard let mark = realm.objects(RBookMark.self).filter(
             """
@@ -103,7 +103,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
 
     private func resolveSpineIndex(_ storedSpineIndex: Int,
                                    chapterId: String,
-                                   book: DCEpubBook) -> Int {
+                                   book: BKEpubBook) -> Int {
         if !chapterId.isEmpty, let index = book.spine.firstIndex(where: { spineItem in
             guard let manifestItem = book.manifest.first(where: { $0.id == spineItem.idref }) else {
                 return false
@@ -121,13 +121,13 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
 }
 
 final class BookPositionDatabaseMock: BookPositionDatabaseProtocol {
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws {}
 
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity? {
         nil
     }
 }

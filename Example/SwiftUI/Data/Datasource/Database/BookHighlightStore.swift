@@ -1,15 +1,15 @@
 //
 //  BookHighlightStore.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 04/05/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 
 @MainActor
-final class BookHighlightStore: DCHighlightStoreProtocol {
+final class BookHighlightStore: BKHighlightStoreProtocol {
 
     private let useCase: BookHighlightUseCaseProtocol
 
@@ -17,15 +17,15 @@ final class BookHighlightStore: DCHighlightStoreProtocol {
         self.useCase = useCase
     }
 
-    func save(_ highlight: DCHighlight) async {
+    func save(_ highlight: BKHighlight) async {
         try? useCase.saveHighlight(highlight)
     }
 
-    func highlights(bookId: String) async -> [DCHighlight] {
+    func highlights(bookId: String) async -> [BKHighlight] {
         (try? useCase.highlights(bookId: bookId)) ?? []
     }
 
-    func highlights(bookId: String, chapterId: String) async -> [DCHighlight] {
+    func highlights(bookId: String, chapterId: String) async -> [BKHighlight] {
         (try? useCase.highlights(bookId: bookId, chapterId: chapterId)) ?? []
     }
 

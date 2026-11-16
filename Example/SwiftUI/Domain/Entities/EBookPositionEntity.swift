@@ -1,6 +1,6 @@
 //
 //  EBookPositionEntity.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 04/05/2026.
 //

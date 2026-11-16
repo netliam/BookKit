@@ -4,45 +4,45 @@
 import PackageDescription
 
 let package = Package(
-    name: "DCEpubReaderKit",
+    name: "BookKit",
     defaultLocalization: "en",
     platforms: [.iOS(.v16), .macCatalyst(.v16)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "DCEpubReaderKit",
-            targets: ["DCEpubReaderKit"]
+            name: "BookKit",
+            targets: ["BookKit"]
         )
     ],
     targets: [
         .target(
-            name: "DCEpubCore"
+            name: "BookKitCore"
         ),
         .target(
-            name: "DCEpubParser",
-            dependencies: ["DCEpubCore"]
+            name: "BookKitParser",
+            dependencies: ["BookKitCore"]
         ),
         .target(
-            name: "DCEpubRendering",
-            dependencies: ["DCEpubCore"],
+            name: "BookKitRendering",
+            dependencies: ["BookKitCore"],
             resources: [
                 .process("Resources")
             ]
         ),
         .target(
-            name: "DCEpubReaderKit",
+            name: "BookKit",
             dependencies: [
-                "DCEpubCore",
-                "DCEpubParser",
-                "DCEpubRendering"
+                "BookKitCore",
+                "BookKitParser",
+                "BookKitRendering"
             ]
         ),
         .testTarget(
-            name: "DCEpubReaderKitTests",
+            name: "BookKitTests",
             dependencies: [
-                "DCEpubCore",
-                "DCEpubParser",
-                "DCEpubRendering"
+                "BookKitCore",
+                "BookKitParser",
+                "BookKitRendering"
             ],
             resources: [
                 .copy("Fixtures")

@@ -1,0 +1,15 @@
+//
+//  BKEpubError.swift
+//  BookKit
+//
+//  Created by Josep Cerdá Penadés on 6/2/26.
+//
+
+/// Represents errors that can occur while handling EPUB files.
+public enum BKEpubError: Error {
+    case invalidEPUB
+    case missingContainer
+    case missingOPF
+    case parseError(String)
+    case unzipError(String)
+}

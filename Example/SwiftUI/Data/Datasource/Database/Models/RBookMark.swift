@@ -1,6 +1,6 @@
 //
 //  RBookMark.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 21/12/25.
 //
@@ -34,7 +34,7 @@ final class RBookMark: Object {
     @Persisted var spineIndex: Int = 0
     @Persisted var textNote: String = ""
     @Persisted var type: String = ""
-    /// "<DCAnnotationStyle> <#RRGGBB>"; older marks have a `DCHighlightStyle` name, or nothing.
+    /// "<BKAnnotationStyle> <#RRGGBB>"; older marks have a `BKHighlightStyle` name, or nothing.
     @Persisted var style: String = ""
     @Persisted var lastcoords: String = ""
     @Persisted var lastchapterid: String = ""

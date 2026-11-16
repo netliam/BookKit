@@ -1,6 +1,6 @@
 # Apple Books features still missing
 
-Apple Books EPUB reader features that DCEpubReaderKit doesn't have yet, as of `d76997a` on `feature/roadmap-items`. See `WORK_LOG.md` for what's already built.
+Apple Books EPUB reader features that BookKit doesn't have yet, as of `d76997a` on `feature/roadmap-items`. See `WORK_LOG.md` for what's already built.
 
 Priority: **P1** = most noticeable when compared side by side with Books, **P2** = nice to have, **P3** = larger or niche.
 

@@ -1,25 +1,25 @@
 //
 //  BookHighlightDatabase.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 04/05/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 internal import Realm
 import RealmSwift
 
 protocol BookHighlightDatabaseProtocol {
-    func saveHighlight(_ highlight: DCHighlight) throws
-    func highlights(bookId: String) throws -> [DCHighlight]
-    func highlights(bookId: String, chapterId: String) throws -> [DCHighlight]
+    func saveHighlight(_ highlight: BKHighlight) throws
+    func highlights(bookId: String) throws -> [BKHighlight]
+    func highlights(bookId: String, chapterId: String) throws -> [BKHighlight]
     func deleteHighlight(uuid: String) throws
 }
 
 final class BookHighlightDatabase: BookHighlightDatabaseProtocol {
 
-    func saveHighlight(_ highlight: DCHighlight) throws {
+    func saveHighlight(_ highlight: BKHighlight) throws {
         let realm = try Realm()
         let mark = RBookMark()
         mark.bookId = highlight.bookId
@@ -40,7 +40,7 @@ final class BookHighlightDatabase: BookHighlightDatabaseProtocol {
         }
     }
 
-    func highlights(bookId: String) throws -> [DCHighlight] {
+    func highlights(bookId: String) throws -> [BKHighlight] {
         let realm = try Realm()
         let types = RBookMark.MarkType.highlightTypes
         return realm.objects(RBookMark.self)
@@ -52,7 +52,7 @@ final class BookHighlightDatabase: BookHighlightDatabaseProtocol {
             .map { $0.toHighlight() }
     }
 
-    func highlights(bookId: String, chapterId: String) throws -> [DCHighlight] {
+    func highlights(bookId: String, chapterId: String) throws -> [BKHighlight] {
         let realm = try Realm()
         let types = RBookMark.MarkType.highlightTypes
         return realm.objects(RBookMark.self)
@@ -72,8 +72,8 @@ final class BookHighlightDatabase: BookHighlightDatabaseProtocol {
 }
 
 private extension RBookMark {
-    func toHighlight() -> DCHighlight {
-        DCHighlight(
+    func toHighlight() -> BKHighlight {
+        BKHighlight(
             uuid: uuid,
             bookId: bookId,
             chapterId: chapterId,
@@ -83,8 +83,8 @@ private extension RBookMark {
             coords: coords,
             note: textNote,
             chapterTitle: chapterTitle,
-            style: DCHighlightStyle(rawValue: style),
-            annotationStyle: style.split(separator: " ").first.flatMap { DCAnnotationStyle(rawValue: String($0)) },
+            style: BKHighlightStyle(rawValue: style),
+            annotationStyle: style.split(separator: " ").first.flatMap { BKAnnotationStyle(rawValue: String($0)) },
             color: style.split(separator: " ").dropFirst().first.map(String.init),
             dateCreated: Double(dateCreated) / 1000,
             dateUpdated: Double(dateUpdated) / 1000
@@ -93,10 +93,10 @@ private extension RBookMark {
 }
 
 private extension RBookMark.MarkType {
-    /// Types stored for `DCHighlight`s (highlights, notes and bookmarks), as opposed to the last position.
+    /// Types stored for `BKHighlight`s (highlights, notes and bookmarks), as opposed to the last position.
     static let highlightTypes = [RBookMark.MarkType.hightLihgt, .note, .bookMark].map(\.rawValue)
 
-    init(_ type: DCHighlight.MarkType) {
+    init(_ type: BKHighlight.MarkType) {
         switch type {
         case .highlight: self = .hightLihgt
         case .note: self = .note
@@ -104,7 +104,7 @@ private extension RBookMark.MarkType {
         }
     }
 
-    var highlightType: DCHighlight.MarkType {
+    var highlightType: BKHighlight.MarkType {
         switch self {
         case .note: .note
         case .bookMark: .bookMark

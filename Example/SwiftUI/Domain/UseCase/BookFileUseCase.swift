@@ -1,15 +1,15 @@
 //
 //  BookFileUseCase.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 19/1/26.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 
 protocol BookFileUseCaseProtocol {
-    func saveBook(book: DCEpubBook) throws
+    func saveBook(book: BKEpubBook) throws
     func getBookList() throws -> [EBookEntity]
     func getBook(uuid: String) throws -> EBookEntity
     func deleteBook(uuid: String) throws
@@ -23,7 +23,7 @@ final class BookFileUseCase: BookFileUseCaseProtocol {
         self.repository = repository
     }
 
-    func saveBook(book: DCEpubBook) throws {
+    func saveBook(book: BKEpubBook) throws {
         try repository.saveBook(book: book)
     }
 

@@ -1,20 +1,20 @@
 //
 //  BookPositionUseCase.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 21/12/25.
 //
 
-import DCEpubReaderKit
+import BookKit
 import Foundation
 
 protocol BookPositionUseCaseProtocol {
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity?
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity?
 }
 
 final class BookPositionUseCase: BookPositionUseCaseProtocol {
@@ -25,7 +25,7 @@ final class BookPositionUseCase: BookPositionUseCaseProtocol {
         self.repository = repository
     }
 
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: BKEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
@@ -39,7 +39,7 @@ final class BookPositionUseCase: BookPositionUseCaseProtocol {
         )
     }
 
-    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
+    func getBookPosition(book: BKEpubBook) throws -> EBookPositionEntity? {
         try repository.getBookPosition(book: book)
     }
 }

@@ -1,8 +1,8 @@
-# 📚 DCEpubReaderKit
+# 📚 BookKit
 
 > ⚠️ **Status:** Work in progress. The library is not production-ready yet.
 
-**DCEpubReaderKit** is a modular Swift library for building EPUB readers (EPUB 2 & 3) in iOS apps. It focuses on flexibility, clean architecture, and full control over the reading experience — without external service dependencies.
+**BookKit** is a modular Swift library for building EPUB readers (EPUB 2 & 3) in iOS apps. It focuses on flexibility, clean architecture, and full control over the reading experience — without external service dependencies.
 
 Designed for both **UIKit** and **SwiftUI**, it provides the core building blocks needed to implement a modern reader: parsing, rendering, navigation, and user interaction (highlights, bookmarks, etc.).
 
@@ -15,7 +15,7 @@ Most EPUB solutions are either:
 - Too heavy (external SDKs, lock-ins)
 - Too opaque (limited control over rendering)
 
-**DCEpubReaderKit** takes the opposite approach:
+**BookKit** takes the opposite approach:
 - You own the UI
 - You control persistence
 - You extend the engine
@@ -54,7 +54,7 @@ Most EPUB solutions are either:
 
 ### 💾 Persistence
 - Reading position tracking
-- Highlight/bookmark persistence: use the built-in `DCJSONReaderStore`, or plug in your own storage
+- Highlight/bookmark persistence: use the built-in `BKJSONReaderStore`, or plug in your own storage
 
 ---
 
@@ -79,21 +79,29 @@ The library is intentionally **unopinionated about storage and UI**, so it can f
 
 Add the package (this fork):
 
-https://github.com/netliam/DCEpubReaderKit.git
+https://github.com/netliam/BookKit.git
 
 In `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/netliam/DCEpubReaderKit.git", from: "0.1.0")
+.package(url: "https://github.com/netliam/BookKit.git", from: "0.1.0")
 ```
 
 Then:
 
 ```swift
-.product(name: "DCEpubReaderKit", package: "DCEpubReaderKit")
+.product(name: "BookKit", package: "BookKit")
 ```
 
 ---
+
+## 🔀 Migrating from DCEpubReaderKit
+
+The library was renamed to BookKit, with no compatibility shims:
+
+- **Package and product:** `DCEpubReaderKit` → `BookKit`. Use `import BookKit`, or the modules `BookKitCore`, `BookKitParser` and `BookKitRendering`.
+- **Types:** the `DC` prefix is now `BK`, e.g. `DCReaderViewBuilder` → `BKReaderViewBuilder`, `DCHighlight` → `BKHighlight`, `DCEpubParser` → `BKEpubParser`. Replacing `\bDC([A-Z])` with `BK$1` in your code covers it.
+- **Saved data is untouched:** reader preferences in `UserDefaults` and the `BKJSONReaderStore` folder use the same keys and paths as before.
 
 ## 🛠️ Roadmap
 
@@ -111,38 +119,38 @@ Then:
 
 ## 💾 Using the built-in store
 
-`DCJSONReaderStore` keeps highlights, notes, bookmarks and the reading position in one JSON file per book
-(`Application Support/DCEpubReaderKit` by default). Wrap it in `DCStoreReaderDelegate` and pass that as the reader's delegate:
+`BKJSONReaderStore` keeps highlights, notes, bookmarks and the reading position in one JSON file per book
+(`Application Support/DCEpubReaderKit` by default; the folder kept its pre-rename name so existing data stays put). Wrap it in `BKStoreReaderDelegate` and pass that as the reader's delegate:
 
 ```swift
-let store = DCJSONReaderStore()
+let store = BKJSONReaderStore()
 let position = await store.position(bookId: book.uniqueIdentifier)
 
-DCReaderViewBuilder.build(
+BKReaderViewBuilder.build(
     book,
     spineIndex: position?.spineIndex ?? 0,
     initialCoords: position?.coords,
-    delegate: DCStoreReaderDelegate(store: store)
+    delegate: BKStoreReaderDelegate(store: store)
 )
 ```
 
-To use your own storage, implement `DCReaderCoordsProtocol` directly (as the example app does with Realm),
-or implement `DCHighlightStoreProtocol` + `DCReadingPositionStoreProtocol` and keep `DCStoreReaderDelegate`.
+To use your own storage, implement `BKReaderCoordsProtocol` directly (as the example app does with Realm),
+or implement `BKHighlightStoreProtocol` + `BKReadingPositionStoreProtocol` and keep `BKStoreReaderDelegate`.
 
 ## ⚙️ Configuring the reader
 
-Pass a `DCReaderConfiguration` to `build` to change what the reader does in your app. Everything has a default:
+Pass a `BKReaderConfiguration` to `build` to change what the reader does in your app. Everything has a default:
 
 ```swift
-var configuration = DCReaderConfiguration()
+var configuration = BKReaderConfiguration()
 configuration.defaults = UserDefaults(suiteName: "reader")!   // where settings and colors are kept
 configuration.bookId = myBook.id                            // instead of the OPF identifier
 configuration.showsSearch = false                           // also showsLineGuide, showsRotationLock, …
 configuration.onClose = { dismissWindow(id: "reader") }      // the reader has its own window
 configuration.onOpenExternalURL = { openURL($0) }
-configuration.fonts = [DCReaderFont(name: "Literata", cssFamily: "Literata", files: [literataURL])]
+configuration.fonts = [BKReaderFont(name: "Literata", cssFamily: "Literata", files: [literataURL])]
 
-DCReaderViewBuilder.build(book, spineIndex: 0, delegate: delegate, configuration: configuration)
+BKReaderViewBuilder.build(book, spineIndex: 0, delegate: delegate, configuration: configuration)
 ```
 
 ### Highlight menu
@@ -152,13 +160,13 @@ highlight. The default is the Books-style menu.
 
 ```swift
 configuration.highlightMenu.palettes = [
-    DCHighlightPalette(style: .highlight, colors: [("Yellow", "#FACC15"), ("Green", "#4ADE80")]),
-    DCHighlightPalette(style: .squiggly, colors: [("Crimson", "#DC143C"), ("Dodger Blue", "#1E90FF")])
+    BKHighlightPalette(style: .highlight, colors: [("Yellow", "#FACC15"), ("Green", "#4ADE80")]),
+    BKHighlightPalette(style: .squiggly, colors: [("Crimson", "#DC143C"), ("Dodger Blue", "#1E90FF")])
 ]
 configuration.highlightMenu.selectionActions = [.note, .search, .copy, .custom(sendToNotebook)]
 configuration.highlightMenu.highlightActions = [.note, .copy, .delete]
 
-let sendToNotebook = DCCustomHighlightAction(title: "Send to Notebook", systemImage: "book") { context in
+let sendToNotebook = BKCustomHighlightAction(title: "Send to Notebook", systemImage: "book") { context in
     // context.text, .spineIndex, .coords, .cfi, and .highlight for a tapped highlight
 }
 ```
@@ -174,22 +182,22 @@ decode.
 Besides `handleCoords`, the delegate gets `handleProgress(book:progress:)` after each page turn: the fraction of the
 whole book read, and the whole-book page and page count once the book has been counted (as the reader shows "11 of 39").
 
-Use the same `bookId` with `DCStoreReaderDelegate(store:bookId:)`. For rotation lock, return
-`DCReaderOrientationLock.supportedOrientations(for: window)` from your app delegate's
+Use the same `bookId` with `BKStoreReaderDelegate(store:bookId:)`. For rotation lock, return
+`BKReaderOrientationLock.supportedOrientations(for: window)` from your app delegate's
 `application(_:supportedInterfaceOrientationsFor:)`.
 
 ## 🔁 EPUB CFI
 
 Positions and highlights are stored as the reader's own `coords`. To sync with CFI-based readers (epub.js and others),
-convert with `DCCFIConverter`:
+convert with `BKCFIConverter`:
 
 ```swift
-let converter = DCCFIConverter(book: book)
+let converter = BKCFIConverter(book: book)
 let cfi = await converter.cfi(fromCoords: highlight.coords, spineIndex: highlight.spineIndex)
 let place = await converter.coords(fromCFI: "epubcfi(/6/4[ch1]!/4/2/1:5)")   // (spineIndex, coords)
 ```
 
-The spine step (`/6` above) is `<spine>`'s real position in the book's OPF (`DCEpubBook.spineStep`), as foliate-js and
+The spine step (`/6` above) is `<spine>`'s real position in the book's OPF (`BKEpubBook.spineStep`), as foliate-js and
 epub.js compute it.
 
 ## 🔍 Search
@@ -197,8 +205,8 @@ epub.js compute it.
 The reader's toolbar includes search. To search outside the reader, use the engine directly:
 
 ```swift
-let engine = DCEpubSearchEngine(book: book)
-let results = await engine.search("whale")   // [DCSearchResult] with chapter, snippet and match
+let engine = BKEpubSearchEngine(book: book)
+let results = await engine.search("whale")   // [BKSearchResult] with chapter, snippet and match
 ```
 
 ---

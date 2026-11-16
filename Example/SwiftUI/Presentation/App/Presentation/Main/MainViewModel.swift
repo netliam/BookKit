@@ -1,19 +1,19 @@
 //
 //  MainViewModel.swift
-//  DCEpubReaderKit
+//  BookKit
 //
 //  Created by Josep Cerdá Penadés on 5/2/26.
 //
 
 import Combine
-import DCEpubReaderKit
+import BookKit
 import SwiftUI
 
 @MainActor
 final class MainViewModel: ObservableObject {
 
     @Published var books: [EBookEntity] = []
-    @Published var selectedEbook: DCEpubBook?
+    @Published var selectedEbook: BKEpubBook?
     @Published var errorMsg: String?
     @Published var isPickerPresented = false
 
@@ -23,7 +23,7 @@ final class MainViewModel: ObservableObject {
         self.useCase = useCase
     }
 
-    var highlightStore: any DCHighlightStoreProtocol {
+    var highlightStore: any BKHighlightStoreProtocol {
         useCase.highlightStore
     }
 }
@@ -50,25 +50,25 @@ extension MainViewModel {
         }
     }
 
-    func getEpubBook(book: EBookEntity) -> DCEpubBook? {
+    func getEpubBook(book: EBookEntity) -> BKEpubBook? {
         guard let url = book.basePath else { return nil }
-        return try? DCEpubParser.parse(from: url)
+        return try? BKEpubParser.parse(from: url)
     }
 
-    func initialBookPosition(for book: DCEpubBook) -> EBookPositionEntity? {
+    func initialBookPosition(for book: BKEpubBook) -> EBookPositionEntity? {
         try? useCase.bookPosition.getBookPosition(book: book)
     }
 
-    func bookHighlights(for book: DCEpubBook) async -> [DCHighlight] {
+    func bookHighlights(for book: BKEpubBook) async -> [BKHighlight] {
         await highlightStore.highlights(bookId: book.uniqueIdentifier)
     }
 }
 
 // MARK: - DC Reader Coords Protocols
 
-extension MainViewModel: DCReaderCoordsProtocol {
+extension MainViewModel: BKReaderCoordsProtocol {
     func handleCoords(
-        book: DCEpubBook,
+        book: BKEpubBook,
         spineIndex: Int,
         coords: String,
         chapterURL: URL?,
@@ -93,19 +93,19 @@ extension MainViewModel: DCReaderCoordsProtocol {
         )
     }
 
-    func highlights(for book: DCEpubBook) async -> [DCHighlight]? {
+    func highlights(for book: BKEpubBook) async -> [BKHighlight]? {
         await highlightStore.highlights(bookId: book.uniqueIdentifier)
     }
 
-    func highlights(for book: DCEpubBook, chapterId: String) async -> [DCHighlight]? {
+    func highlights(for book: BKEpubBook, chapterId: String) async -> [BKHighlight]? {
         await highlightStore.highlights(bookId: book.uniqueIdentifier, chapterId: chapterId)
     }
 
-    func save(highlight: DCHighlight) async {
+    func save(highlight: BKHighlight) async {
         await highlightStore.save(highlight)
     }
 
-    func deleteHighlight(uuid: String, book: DCEpubBook) async {
+    func deleteHighlight(uuid: String, book: BKEpubBook) async {
         await highlightStore.delete(uuid: uuid)
     }
 }
@@ -130,7 +130,7 @@ private extension MainViewModel {
                 destinationRoot: stagingRoot
             )
 
-            let parsedBook = try DCEpubParser.parse(from: unzipRoot)
+            let parsedBook = try BKEpubParser.parse(from: unzipRoot)
             let finalRoot = FileHelper.shared.bookDirectory(for: parsedBook.uniqueIdentifier)
 
             if FileManager.default.fileExists(atPath: finalRoot.path) {
@@ -138,7 +138,7 @@ private extension MainViewModel {
             }
             try FileManager.default.moveItem(at: unzipRoot, to: finalRoot)
 
-            let persistedBook = try DCEpubParser.parse(from: finalRoot)
+            let persistedBook = try BKEpubParser.parse(from: finalRoot)
             try useCase.bookFile.saveBook(book: persistedBook)
             loadBooks()
         } catch {
