@@ -47,7 +47,7 @@ struct MainView: View {
             }
             .navigationTitle("My Library".localized())
             .toolbar {
-                Button("Import EPUB".localized()) {
+                Button("Import Book".localized()) {
                     viewModel.isPickerPresented = true
                 }
             }
@@ -56,7 +56,7 @@ struct MainView: View {
             }
             .fileImporter(
                 isPresented: $viewModel.isPickerPresented,
-                allowedContentTypes: [.epub],
+                allowedContentTypes: BKBookFormat.allContentTypes,
                 allowsMultipleSelection: false
             ) { result in
                 viewModel.fileImporterResult(result)

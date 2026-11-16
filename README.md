@@ -95,6 +95,20 @@ Then:
 
 ---
 
+## 📄 Plain text and Markdown
+
+`.txt` and `.md` files are converted into an EPUB-style folder and read in the same reader, so themes,
+Line Guide, search, highlights and page numbers all work:
+
+```swift
+let book = try BKTextBookConverter.convert(fileURL, to: bookFolder)   // returns a BKEpubBook
+BKReaderViewBuilder.build(book, spineIndex: 0, delegate: delegate)
+```
+
+- **Chapters:** Markdown is split at its headings. Plain text is split at lines like "Chapter 1" or "Part Two", and a Project Gutenberg `Title:`/`Author:` header becomes the book's metadata.
+- **Long chapters:** these are cut into parts so pages stay quick to lay out.
+- **File types:** use `BKBookFormat(fileURL:)` to tell formats apart, and `BKBookFormat.allContentTypes` for a document picker.
+
 ## 🔀 Migrating from DCEpubReaderKit
 
 The library was renamed to BookKit, with no compatibility shims:

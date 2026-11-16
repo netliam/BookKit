@@ -30,7 +30,7 @@ struct BookGridItem: View {
             RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(book.title), \(book.author)")
+        .accessibilityLabel(book.author.isEmpty ? book.title : "\(book.title), \(book.author)")
     }
 }
 

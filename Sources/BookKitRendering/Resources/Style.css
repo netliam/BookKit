@@ -113,8 +113,10 @@ code, kbd, pre, samp, tt {
 button, input, select, textarea { display: inline-block !important; }
 
 del, s, strike { text-decoration: line-through!important; }
+/* In the text color, so rules show in dark themes too. */
 hr {
-    background-color: rgba(0,0,0,.1) !important;
+    background-color: currentColor !important;
+    opacity: .3;
     border: none !important;
     height: 1px !important;
 }

@@ -125,10 +125,20 @@ private extension MainViewModel {
                 FileHelper.shared.clearTempSubfolder()
             }
 
-            let unzipRoot = try EpubFileManager.shared.prepareBookFiles(
-                epubFile: url,
-                destinationRoot: stagingRoot
-            )
+            let unzipRoot: URL
+            switch BKBookFormat(fileURL: url) {
+            case .plainText, .markdown:
+                // Text and Markdown are converted into an EPUB-style folder that the reader opens as usual.
+                let needsSecurityAccess = url.startAccessingSecurityScopedResource()
+                defer { if needsSecurityAccess { url.stopAccessingSecurityScopedResource() } }
+                _ = try BKTextBookConverter.convert(url, to: stagingRoot)
+                unzipRoot = stagingRoot
+            default:
+                unzipRoot = try EpubFileManager.shared.prepareBookFiles(
+                    epubFile: url,
+                    destinationRoot: stagingRoot
+                )
+            }
 
             let parsedBook = try BKEpubParser.parse(from: unzipRoot)
             let finalRoot = FileHelper.shared.bookDirectory(for: parsedBook.uniqueIdentifier)
