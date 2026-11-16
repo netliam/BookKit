@@ -28,7 +28,7 @@ final class MainViewModel: ObservableObject {
         useCase.highlightStore
     }
 
-    /// Reading positions of PDFs (EPUB positions are kept in Realm by `handleCoords`).
+    /// Reading positions of PDFs and comics (EPUB positions are kept in Realm by `handleCoords`).
     let pdfPositionStore = BKJSONReaderStore()
 }
 
@@ -118,9 +118,15 @@ extension MainViewModel: BKReaderCoordsProtocol {
 
 private extension MainViewModel {
     func importBook(from url: URL) {
-        if BKBookFormat(fileURL: url) == .pdf {
+        switch BKBookFormat(fileURL: url) {
+        case .pdf:
             importPDF(from: url)
             return
+        case .comic:
+            importComic(from: url)
+            return
+        default:
+            break
         }
         do {
             let stagingBase = FileHelper.shared.getTempFolder()
@@ -158,6 +164,32 @@ private extension MainViewModel {
 
             let persistedBook = try BKEpubParser.parse(from: finalRoot)
             try useCase.bookFile.saveBook(book: persistedBook)
+            loadBooks()
+        } catch {
+            errorMsg = error.localizedDescription
+        }
+    }
+
+    /// Comics are read straight from the archive: it's copied into the book's folder, with page 1 as the cover.
+    func importComic(from url: URL) {
+        let needsSecurityAccess = url.startAccessingSecurityScopedResource()
+        defer { if needsSecurityAccess { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let book = try BKComicBook(url: url)
+            let folder = FileHelper.shared.bookDirectory(for: book.identifier)
+            try? FileManager.default.removeItem(at: folder)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try FileManager.default.copyItem(at: url, to: folder.appendingPathComponent("book.cbz"))
+
+            var coverPath = ""
+            if let image = UIImage(data: try book.imageData(page: 0)),
+               let png = image.preparingThumbnail(of: CGSize(width: 400, height: 400 * image.size.height / max(image.size.width, 1)))?.pngData() {
+                try png.write(to: folder.appendingPathComponent("cover.png"))
+                coverPath = "cover.png"
+            }
+            try useCase.bookFile.saveBook(uuid: book.identifier, title: book.title,
+                                          author: book.authors.joined(separator: ", "),
+                                          format: BKBookFormat.comic.rawValue, coverPath: coverPath)
             loadBooks()
         } catch {
             errorMsg = error.localizedDescription

@@ -113,6 +113,35 @@ if let reader = BKPDFReaderViewBuilder.build(url: pdfURL, highlightStore: store,
 - **Storage:** highlights and bookmarks are ordinary `BKHighlight`s whose coords are `BKPDFLocation`s, saved in the same stores as EPUB marks. The PDF file itself is never modified.
 - **Book identifier:** by default it comes from the file's contents (`BKPDFReaderViewBuilder.identifier(forPDFAt:)`).
 
+## 🗯️ Comics (CBZ)
+
+Comic book archives open page by page, with zoom:
+
+```swift
+let reader = try BKComicReaderViewBuilder.build(url: cbzURL, highlightStore: store, positionStore: store)
+```
+
+- **Reading:** pages fill a black screen; tap the edges or swipe to turn, and pinch or double-tap to zoom.
+- **Controls:** a page slider, bookmarks, a Pages grid (all pages or bookmarked only), and Share.
+- **ComicInfo.xml:** supplies the title, the authors and right-to-left reading for manga.
+- **Pages:** they're read from the archive on demand with `BKZipArchive` (a small read-only ZIP reader in Core) and decoded at screen size.
+- **Declaring the file type:** iOS has no system type for `.cbz`, so declare one in your app's `Info.plist`, or the document picker greys `.cbz` files out:
+
+```xml
+<key>UTImportedTypeDeclarations</key>
+<array>
+  <dict>
+    <key>UTTypeIdentifier</key><string>com.bookkit.cbz</string>
+    <key>UTTypeDescription</key><string>Comic Book Archive</string>
+    <key>UTTypeConformsTo</key><array><string>public.zip-archive</string><string>public.data</string></array>
+    <key>UTTypeTagSpecification</key>
+    <dict><key>public.filename-extension</key><array><string>cbz</string></array></dict>
+  </dict>
+</array>
+```
+
+`BKBookFormat.allContentTypes` then includes it. CBR (RAR) archives aren't supported, since that needs a third-party decoder.
+
 ## 📄 Plain text and Markdown
 
 `.txt` and `.md` files are converted into an EPUB-style folder and read in the same reader, so themes,

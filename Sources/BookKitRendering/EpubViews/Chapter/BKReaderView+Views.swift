@@ -236,6 +236,24 @@ struct BKShareSheet: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }
 
+/// Files shared under their book's title rather than their stored name (e.g. `book.pdf`).
+enum BKShareFile {
+    /// A link (or copy) of `url` named after `title`, keeping the extension; `url` if that fails.
+    static func named(_ url: URL, title: String) -> URL {
+        let safeTitle = title.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+        let named = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookKitShare", isDirectory: true)
+            .appendingPathComponent(safeTitle.isEmpty ? url.lastPathComponent : "\(safeTitle).\(url.pathExtension)")
+        try? FileManager.default.createDirectory(at: named.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? FileManager.default.removeItem(at: named)
+        if (try? FileManager.default.linkItem(at: url, to: named)) != nil
+            || (try? FileManager.default.copyItem(at: url, to: named)) != nil {
+            return named
+        }
+        return url
+    }
+}
+
 // MARK: - Progress scrubber
 
 /// Books-style progress scrubber: drag to any page of the book, with the chapter and page shown

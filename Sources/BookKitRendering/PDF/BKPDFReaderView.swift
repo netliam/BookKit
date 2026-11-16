@@ -7,7 +7,6 @@
 
 import PDFKit
 import SwiftUI
-import CryptoKit
 import BookKitCore
 
 /// Opens PDFs in a Books-style reader: full-screen pages, controls on tap, bookmarks, colored
@@ -38,13 +37,7 @@ public enum BKPDFReaderViewBuilder {
 
     /// A stable id from the file's contents (its first 4 MB and size), for the stores.
     public static func identifier(forPDFAt url: URL) -> String {
-        guard let handle = try? FileHandle(forReadingFrom: url) else { return url.lastPathComponent }
-        defer { try? handle.close() }
-        var hasher = SHA256()
-        hasher.update(data: (try? handle.read(upToCount: 4 * 1024 * 1024)) ?? Data())
-        let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
-        hasher.update(data: Data("\(size)".utf8))
-        return "pdf-" + hasher.finalize().prefix(16).map { String(format: "%02x", $0) }.joined()
+        BKFileIdentifier.identifier(forFileAt: url, prefix: "pdf")
     }
 }
 

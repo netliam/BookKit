@@ -28,7 +28,12 @@ struct MainView: View {
                 LazyVGrid(columns: gridColumns, spacing: 16) {
                     ForEach(viewModel.books, id: \.uuid) { book in
                         NavigationLink {
-                            if book.isPDF, let pdfURL = book.pdfURL {
+                            if book.isComic, let comicURL = book.comicURL {
+                                try? BKComicReaderViewBuilder.build(url: comicURL,
+                                                                    bookId: book.uuid,
+                                                                    highlightStore: viewModel.highlightStore,
+                                                                    positionStore: viewModel.pdfPositionStore)
+                            } else if book.isPDF, let pdfURL = book.pdfURL {
                                 BKPDFReaderViewBuilder.build(url: pdfURL,
                                                              bookId: book.uuid,
                                                              highlightStore: viewModel.highlightStore,

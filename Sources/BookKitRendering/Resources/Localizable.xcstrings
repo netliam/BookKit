@@ -58,6 +58,9 @@
     "Bold": {
       "extractionState": "manual"
     },
+    "Bookmarked": {
+      "extractionState": "manual"
+    },
     "Bookmarks": {
       "extractionState": "manual"
     },
@@ -188,6 +191,9 @@
       "extractionState": "manual"
     },
     "Narrow": {
+      "extractionState": "manual"
+    },
+    "No Bookmarks": {
       "extractionState": "manual"
     },
     "No marks": {

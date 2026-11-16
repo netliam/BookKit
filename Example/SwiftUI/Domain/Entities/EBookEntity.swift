@@ -27,6 +27,12 @@ struct EBookEntity {
     }
 
     var isPDF: Bool { format == "pdf" }
+    var isComic: Bool { format == "comic" }
+
+    /// The archive, for comic books (kept as `book.cbz` in the book's folder).
+    var comicURL: URL? {
+        basePath?.appendingPathComponent("book.cbz")
+    }
 
     /// The PDF file, for PDF books (kept as `book.pdf` in the book's folder).
     var pdfURL: URL? {

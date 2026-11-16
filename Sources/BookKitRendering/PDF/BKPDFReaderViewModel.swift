@@ -331,16 +331,7 @@ final class BKPDFReaderViewModel: NSObject, ObservableObject {
         if let text = pdfView?.currentSelection?.string?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
             return [text]
         }
-        let named = FileManager.default.temporaryDirectory
-            .appendingPathComponent("BookKitShare", isDirectory: true)
-            .appendingPathComponent(title.replacingOccurrences(of: "/", with: "-") + ".pdf")
-        try? FileManager.default.createDirectory(at: named.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? FileManager.default.removeItem(at: named)
-        if (try? FileManager.default.linkItem(at: fileURL, to: named)) != nil
-            || (try? FileManager.default.copyItem(at: fileURL, to: named)) != nil {
-            return [named]
-        }
-        return [fileURL]
+        return [BKShareFile.named(fileURL, title: title)]
     }
 }
 
