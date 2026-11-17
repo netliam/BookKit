@@ -15,18 +15,21 @@ public enum BKComicReaderViewBuilder {
     /// - Parameters:
     ///   - url: A `.cbz` file.
     ///   - bookId: Identifies the book in the stores; defaults to `BKComicBook.identifier`.
+    ///   - onClose: Called by the reader's close button instead of `dismiss()`; set it when the reader
+    ///     has a window of its own (e.g. `openWindow` on Mac). `nil` dismisses it.
     /// - Throws: When the file isn't a readable comic archive.
     @MainActor
     public static func build(url: URL,
                              bookId: String? = nil,
                              highlightStore: BKHighlightStoreProtocol? = nil,
-                             positionStore: BKReadingPositionStoreProtocol? = nil) throws -> BKComicReaderView {
+                             positionStore: BKReadingPositionStoreProtocol? = nil,
+                             onClose: (() -> Void)? = nil) throws -> BKComicReaderView {
         let book = try BKComicBook(url: url)
         let viewModel = BKComicReaderViewModel(book: book,
                                                bookId: bookId ?? book.identifier,
                                                highlightStore: highlightStore,
                                                positionStore: positionStore)
-        return BKComicReaderView(viewModel: viewModel)
+        return BKComicReaderView(viewModel: viewModel, onClose: onClose)
     }
 }
 
@@ -36,8 +39,16 @@ public struct BKComicReaderView: View {
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @StateObject private var viewModel: BKComicReaderViewModel
 
-    init(viewModel: BKComicReaderViewModel) {
+    private let onClose: (() -> Void)?
+
+    init(viewModel: BKComicReaderViewModel, onClose: (() -> Void)? = nil) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.onClose = onClose
+    }
+
+    /// The host's `onClose`, or dismiss (pushed or presented).
+    private func close() {
+        if let onClose { onClose() } else { dismiss() }
     }
 
     private var showsChrome: Bool {
@@ -65,7 +76,7 @@ public struct BKComicReaderView: View {
 
     private var topChrome: some View {
         HStack(spacing: 12) {
-            BKChromeButton(systemImage: "xmark", accessibilityLabel: L("Close")) { dismiss() }
+            BKChromeButton(systemImage: "xmark", accessibilityLabel: L("Close")) { close() }
             Spacer(minLength: 0)
             Text(viewModel.book.title)
                 .font(.subheadline.weight(.semibold))

@@ -18,13 +18,16 @@ public enum BKPDFReaderViewBuilder {
     ///   - bookId: Identifies the book in the stores; defaults to a hash of the file's contents.
     ///   - highlightStore: Where highlights and bookmarks are saved (e.g. a `BKJSONReaderStore`).
     ///   - positionStore: Where the reading position is saved.
+    ///   - onClose: Called by the reader's close button instead of `dismiss()`; set it when the reader
+    ///     has a window of its own (e.g. `openWindow` on Mac). `nil` dismisses it.
     /// - Returns: The reader, or `nil` when the file isn't a readable PDF (e.g. it's encrypted).
     @MainActor
     public static func build(url: URL,
                              bookId: String? = nil,
                              highlightStore: BKHighlightStoreProtocol? = nil,
                              positionStore: BKReadingPositionStoreProtocol? = nil,
-                             menuConfiguration: BKHighlightMenuConfiguration = BKHighlightMenuConfiguration()) -> BKPDFReaderView? {
+                             menuConfiguration: BKHighlightMenuConfiguration = BKHighlightMenuConfiguration(),
+                             onClose: (() -> Void)? = nil) -> BKPDFReaderView? {
         guard let document = PDFDocument(url: url), !document.isLocked else { return nil }
         let viewModel = BKPDFReaderViewModel(document: document,
                                              fileURL: url,
@@ -32,7 +35,7 @@ public enum BKPDFReaderViewBuilder {
                                              highlightStore: highlightStore,
                                              positionStore: positionStore,
                                              menuConfiguration: menuConfiguration)
-        return BKPDFReaderView(viewModel: viewModel)
+        return BKPDFReaderView(viewModel: viewModel, onClose: onClose)
     }
 
     /// A stable id from the file's contents (its first 4 MB and size), for the stores.
@@ -47,8 +50,16 @@ public struct BKPDFReaderView: View {
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @StateObject private var viewModel: BKPDFReaderViewModel
 
-    init(viewModel: BKPDFReaderViewModel) {
+    private let onClose: (() -> Void)?
+
+    init(viewModel: BKPDFReaderViewModel, onClose: (() -> Void)? = nil) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.onClose = onClose
+    }
+
+    /// The host's `onClose`, or dismiss (pushed or presented).
+    private func close() {
+        if let onClose { onClose() } else { dismiss() }
     }
 
     private var showsChrome: Bool {
@@ -98,7 +109,7 @@ public struct BKPDFReaderView: View {
                 .opacity(showsChrome ? 0 : 1)
                 .accessibilityHidden(showsChrome)
             HStack(spacing: 12) {
-                BKChromeButton(systemImage: "xmark", accessibilityLabel: L("Close")) { dismiss() }
+                BKChromeButton(systemImage: "xmark", accessibilityLabel: L("Close")) { close() }
                 Spacer(minLength: 0)
                 Text(viewModel.title)
                     .font(.subheadline.weight(.semibold))
